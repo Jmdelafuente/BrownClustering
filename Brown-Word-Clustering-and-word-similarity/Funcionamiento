@@ -1,0 +1,7 @@
+Para probar el corpus de ejemplo basta con acceder a esta carpeta en una terminal y ejecutar
+
+python Brown_clustering.py 
+
+Debería funcionar bien tanto en Python 2 como en Python 3, fue ampliamente probado con la version 2.7
+
+Ademas se adjuntan los py correspondiente a limpieza heurística que fueron encontrados en github pero no han sido probados en profundidad.

@@ -1,25 +1,25 @@
 import os
 import collections
-from nltk.corpus import brown
+# from nltk.corpus import brown
 from collections import defaultdict, Counter
 from math import log
 from itertools import chain, combinations
 
 
 '''
-Part 1: Read and process the dataprint vocab_UNK
+Parte 1: Leer y procesar la información
 '''
 def toLowerCase(s):
-    #Convert a sting to lowercase. E.g., 'BaNaNa' becomes 'banana'
+    #[DEPRECATED] Limpieza heurística: Convertir sting a lowercase. E.g., 'BaNaNa' -> 'banana'
     return s.lower()
 
 def stripNonAlpha(s):
-    # Remove non alphabetic characters. E.g. 'B:a,n+a1n$a' becomes 'Banana'
+    # Limpieza segun alfabeto / Remove non alphabetic characters. E.g. 'B:a,n+a1n$a' -> 'Banana'
     return ''.join([c for c in s if (c.isalpha()) ] )
 ######################################
-# ReadData: read all the texts from the specific file, and return a list of all the text
-# Input: file path, eg:DIR = 'brown/'
-# output: list of all the text(tokenized)
+# ReadData: Lee todos los textos de un archivo específico, return: lista de todos los textos
+# Input: corpus de ejemplo, eg:DIR = 'brown/'
+# output: lista tokenized de los textos
 #####################################
 #DIR = 'brown/'
 def ReadData(DIR):
@@ -41,9 +41,9 @@ def ReadData(DIR):
     return data
 
 ######################################
-# Vocabulary: Get vocabulary of the corpus.
-# Input: corpus data, list: [[s1],[s2],...]
-# output: dictionary, vorcabulary and corresponding number
+# Vocabulary: Genera el vocabulario V del corpus.
+# Input: corpus data, listas: [[s1],[s2],...]
+# output: diccionario, vocabulario y binario correspondiente
 #####################################
 def Vocabulary(data):
     Vocab = []
@@ -88,7 +88,7 @@ data = ReadData('brown/') #brown corpus, [[tokenized s1],[tokenized s2],[tokeniz
 #print data[0]
 #print brown.sents()[0]
 
-vocab = Vocabulary(data) # original vocab, type: dictionary
+vocab = Vocabulary(data) # original V, tipo: dictionary
 vocab_UNK, data_UNK = UNK_handing(vocab,data) # vocab and data after UNK handling
 
 #print data_UNK[0]
@@ -96,8 +96,8 @@ vocab_UNK, data_UNK = UNK_handing(vocab,data) # vocab and data after UNK handlin
 #print vocab_UNK.keys()
 
 '''
-Part 2: build a bi-gram tokens table, eg: table[token2][token1] == count(token1,token2)
-        for computational convenience
+Parte 2: construyo la tabla token - bi-grama, ej: table[token2][token1] == count(token1,token2)
+        para optimizar un poco el funcionamiento
 '''
 def Bigram_table(vocab, data):
 
@@ -139,7 +139,7 @@ vocabulary = sorted(vocab_UNK.items(),key = lambda x:(x[1],x[0]),reverse = True)
 #print Bi_table.items()[:10] #[(('helium', 'temperature'), 1), (('little', 'note'), 1), (('youth', 'adopt'), 1),...]
 
 
-'''define some global variants'''
+'''variables globales'''
 def Merge_table(w1,w2):
 #w1,w2: 'note','little'
     vocab_UNK[w1] += vocab_UNK[w2]
@@ -158,7 +158,7 @@ def Merge_table(w1,w2):
 #N = len(vocab_UNK)
 N = sum(Bi_table.values())
 '''
-# write words and corpus
+# salida de las palabras y el corpus
 
 f = open('brown_corpus_afterUNK.txt', 'w')
 for element in data_UNK:
@@ -171,7 +171,7 @@ f.close()
 '''
 
 '''
-Part 3: Brown Clustering
+Part 3: Brown Clustering propiamente dicho
 '''
 def count(c):
 
@@ -246,22 +246,22 @@ def Merged_L(c1,c2,m1,m2,C,W_cache):
 # L: store the change
 #remaining_word: word list
 def Merge(C, word_string,cluster1,cluster2, cluster , L,merge_History, remain_word,W_cache):
-    '''part 1: encoder'''
+    '''parte 1: encoder'''
     for x in cluster[cluster1]:
         #print "x: ",x,word_string[x[0]]
         word_string[x[0]] = '0'+word_string[x[0]]
     for x in cluster[cluster2]:
         word_string[x[0]] = '1'+word_string[x[0]]
 
-    '''part2: upadate the cluster'''
+    '''parte 2: actualizar el cluster'''
     merge_History.append((cluster1,cluster2))
     cluster[cluster1] += cluster[cluster2] # lsit merge
     del cluster[cluster2] # we keep cluster and delete cluster2
 
-    '''part 3: intial L'''
+    '''parte 3: L inicial'''
     del L[(cluster1, cluster2)]
     del L[(cluster2, cluster1)]
-    '''part 4: new node come in'''
+    '''parte 4: nuevo nodo'''
 
     new_word = remain_word[0]
     remain_word = remain_word[1:]
@@ -288,24 +288,24 @@ def Merge(C, word_string,cluster1,cluster2, cluster , L,merge_History, remain_wo
 
     return C, L,word_string,cluster ,merge_History, remain_word,W_cache
 
-# Keep merging to construct a full hierarchy
+# Continuo la agregacion para construir l a jerarquia completa
 def full_Merge(C, word_string,cluster1,cluster2, cluster , L,merge_History,W_cache):
-    '''part 1: encoder'''
+    '''parte 1: encoder'''
     for x in cluster[cluster1]:
         #print "x: ",x,word_string[x[0]]
         word_string[x[0]] = '0'+word_string[x[0]]
     for x in cluster[cluster2]:
         word_string[x[0]] = '1'+word_string[x[0]]
 
-    '''part2: upadate the cluster'''
+    '''parte 2: upadate al cluster'''
     merge_History.append((cluster1,cluster2))
     cluster[cluster1] += cluster[cluster2] # lsit merge
     del cluster[cluster2] # we keep cluster and delete cluster2
 
-    '''part 3: intial L'''
+    '''parte 3: L inicial'''
     del L[(cluster1, cluster2)]
     del L[(cluster2, cluster1)]
-    '''part 4: new node come in'''
+    '''part 4: nuevo nodo'''
 
     other_clusters = tuple([x for x in C if x != cluster1 and x != cluster2])
     C = other_clusters + (cluster1,)  # return C
@@ -342,8 +342,8 @@ def saveProgress_final():
     with open('savedBinaryStrings_final.pyon', 'w') as outfile:
         outfile.write(repr(word_string))
 
-'''Initiate the parameters and start'''
-print "Initialize parameters"
+'''Init de parametros y comienzo'''
+print "Init parametros"
 C = tuple([(i[0],) for i in vocabulary[:200]])  #[('UNK',), ('the',), ('of',), ('and',), ('to',), ('a',), ('in',), ('that',), ('is',), ('was',), ...]
 remain_word = [(i[0],) for i in vocabulary[200:]]
 
@@ -359,7 +359,7 @@ for c in C:
         cluster[c] = [c]
 
 #print vocab_UNK
-print "Initialize L"
+print "Init L"
 L = Initial_L(C,W_cache)
 print L
 
@@ -374,8 +374,8 @@ while remain_word != []:
     #choose highest to merge
     (winner1, winner2), quality = L.most_common(1)[0]
     print "___________________"
-    print('Merging {} and {}'.format(winner1, winner2))
-    print "number of remaining words",len(remain_word)
+    print('Combinando {} y {}'.format(winner1, winner2))
+    print "numero restante de palabras",len(remain_word)
     C, L,word_string, cluster, merge_History, remain_word, W_cache = Merge(C,word_string,winner1, winner2,cluster,L,merge_history,remain_word,W_cache)
 
     W_cache = {}  # evict Weight cache for the next round of merge
@@ -389,13 +389,13 @@ while remain_word != []:
     #print "encode",word_string
     #print "Cluster: ",C
 
-f = open('cluster_before_keep_merging_2.txt', 'w')
+f = open('cluster_antes_de_merging_2.txt', 'w')
 for element in cluster.items():
     f.write(str(element))
     f.write('\n')
 f.close()
 
-f_2 = open('encode_before_keepmerging_2.txt', 'w')
+f_2 = open('encode_antes_de_merging_2.txt', 'w')
 for element in word_string.items():
     f_2.write(str(element))
     f_2.write('\n')
@@ -405,7 +405,7 @@ f_2.close()
 #Keep merging
 while len(C) != 1:
     (winner1, winner2), quality = L.most_common(1)[0]
-    print('Merging {} and {}'.format(winner1, winner2))
+    print('Combinando {} y {}'.format(winner1, winner2))
     C, L, word_string, cluster, merge_History, W_cache = full_Merge(C, word_string,winner1,winner2, cluster , L,merge_History,W_cache)
     #print "C: ",C
 
